@@ -1,5 +1,7 @@
 package com.rocker.service;
 
+import com.fizzed.rocker.Rocker;
+import com.fizzed.rocker.runtime.StringBuilderOutput;
 import com.rocker.model.CreditNote;
 import com.rocker.model.Customer;
 import com.rocker.model.Invoice;
@@ -16,21 +18,22 @@ import java.util.*;
 
 @Service
 @Slf4j
-public class RockerService {
+public class RockerTempService {
 
-    private String lowi_style="src/main/java/views/lowi_style.css";
+
+    private String lowi_style = "src/main/java/views/lowi_style.css";
 
     //    @Value("${dge.template.lowimain.css}")
-    private String lowi_main="src/main/java/views/lowi_main.css";
+    private String lowi_main = "src/main/java/views/lowi_main.css";
 
-    private String logo="src/main/java/views//JOiNew.png";
+    private String logo = "src/main/java/views//JOiNew.png";
 
-    public String getTemplate(){
+    public String loadTemplateByPath() {
 
-        CreditNote creditNote=new CreditNote();
-        creditNote.setCustomer(new Customer("mr","k","sree","yadhav","1",1,
-                "1234","000","100","1-104","","509204","nandipet",
-                "","mbnr","ts","600000","IN","ss12@gmail.com","english"));
+        CreditNote creditNote = new CreditNote();
+        creditNote.setCustomer(new Customer("mr", "k", "sree", "yadhav", "1", 1,
+                "1234", "000", "100", "1-104", "", "509204", "nandipet",
+                "", "mbnr", "ts", "600000", "IN", "ss12@gmail.com", "english"));
         creditNote.setReferenceNumber(creditNote.getReferenceNumber());
         creditNote.setTaxDescription(creditNote.getTaxDescription());
         creditNote.setCreatedAt(new Date());
@@ -44,23 +47,24 @@ public class RockerService {
         creditNote.setTaxAmount(creditNote.getTaxAmount());
         creditNote.setNetAmount(creditNote.getNetAmount());
         creditNote.setGenerated(true);
-        creditNote.setInvoices(List.of(new Invoice("1234455","11/1/24",100.0f),
-                new Invoice("010101","1/1/24",12.0f)));
+        creditNote.setInvoices(List.of(new Invoice("1234455", "11/1/24", 100.0f),
+                new Invoice("010101", "1/1/24", 12.0f)));
 
 
-        Map<String,Object> contentMap=new HashMap<>();
-        contentMap.put("lowi_style",lowi_style);
-        contentMap.put("lowi_main",lowi_main);
-        contentMap.put("logo",logo);
+        Map<String, Object> contentMap = new HashMap<>();
+        contentMap.put("lowi_style", lowi_style);
+
+        contentMap.put("lowi_main", lowi_main);
+        contentMap.put("logo", logo);
 
         Map<String, Properties> properties = new HashMap<>();
-        Map<String,String> propertiesValues=new HashMap<>();
+        Map<String, String> propertiesValues = new HashMap<>();
         Resource resource;
         String propertyFile = "language_es.properties";
         try {
             resource = new ClassPathResource(propertyFile);
             Properties props = PropertiesLoaderUtils.loadProperties(resource);
-            for(Map.Entry<Object,Object> entry:props.entrySet()){
+            for (Map.Entry<Object, Object> entry : props.entrySet()) {
                 String key = (String) entry.getKey();
                 String value = (String) entry.getValue();
                 propertiesValues.put(key, value);
@@ -71,19 +75,19 @@ public class RockerService {
             log.info("{} property file not found", propertyFile);
         }
 
-        String template = templates.lowi_es.template(creditNote, contentMap, propertiesValues)
-                .render()
-                .toString();
-
+        String template1 = Rocker.template("templates/lowi_es.rocker.html")
+                .bind("creditNote", creditNote).bind("contentMap", contentMap).bind("properties", propertiesValues)
+                .render(StringBuilderOutput.FACTORY).toString();
+        log.info(template1);
         log.info("completed");
-        log.info(template);
 
         String outputFile = "C:\\JAVA\\vff.pdf";
         try (FileOutputStream os = new FileOutputStream(outputFile)) {
             ITextRenderer renderer = new ITextRenderer();
+//            renderer.getSharedContext().setBaseURL("file:///C:/Users/Srisailam/Downloads/rocker/src/main/java/views");
             renderer.getSharedContext().setUserAgentCallback(new MyUserAgent(renderer.getOutputDevice()));
 
-            renderer.setDocumentFromString(template);
+            renderer.setDocumentFromString(template1);
             renderer.layout();
             renderer.createPDF(os, true);
             renderer.finishPDF();
@@ -92,7 +96,9 @@ public class RockerService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return "done";
+//
+        return "completed";
+
     }
 
 }
