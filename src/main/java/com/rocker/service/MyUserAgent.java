@@ -1,4 +1,4 @@
-package com.rocker;
+package com.rocker.service;
 
 import org.xhtmlrenderer.pdf.ITextOutputDevice;
 import org.xhtmlrenderer.pdf.ITextUserAgent;
